@@ -485,6 +485,11 @@ namespace ICSharpCode.SharpZipLib.Zip
 		[Obsolete("Use EndOfCentralDirectorySignature instead")]
 		public const int ENDSIG = 'P' | ('K' << 8) | (5 << 16) | (6 << 24);
 
+		/// <summary>
+		/// End of central directory record signature
+		/// </summary>
+		public const int ReflexiveEndOfCentralDirectorySignature = 'R' | ('E' << 8) | (5 << 16) | (6 << 24);
+
 		#endregion Header Signatures
 	}
 

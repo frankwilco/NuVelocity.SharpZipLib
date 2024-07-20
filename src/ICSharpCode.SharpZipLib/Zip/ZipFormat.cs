@@ -235,9 +235,9 @@ namespace ICSharpCode.SharpZipLib.Zip
 
 		/// <inheritdoc cref="WriteEndOfCentralDirectory"/>
 		public static  async Task WriteEndOfCentralDirectoryAsync(Stream stream, long noOfEntries, long sizeEntries, 
-			long start, byte[] comment, CancellationToken cancellationToken) 
+			long start, byte[] comment, CancellationToken cancellationToken, bool useReflexiveEocdSignature) 
 			=> await stream.WriteProcToStreamAsync(s 
-				=> WriteEndOfCentralDirectory(s, noOfEntries, sizeEntries, start, comment), cancellationToken).ConfigureAwait(false);
+				=> WriteEndOfCentralDirectory(s, noOfEntries, sizeEntries, start, comment, useReflexiveEocdSignature), cancellationToken).ConfigureAwait(false);
 		
 		/// <summary>
 		/// Write the required records to end the central directory.
@@ -247,8 +247,9 @@ namespace ICSharpCode.SharpZipLib.Zip
 		/// <param name="sizeEntries">The size of the entries in the directory.</param>
 		/// <param name="start">The start of the central directory.</param>
 		/// <param name="comment">The archive comment.  (This can be null).</param>
+		/// <param name="useReflexiveEocdSignature" />
 
-		internal static void WriteEndOfCentralDirectory(Stream stream, long noOfEntries, long sizeEntries, long start, byte[] comment)
+		internal static void WriteEndOfCentralDirectory(Stream stream, long noOfEntries, long sizeEntries, long start, byte[] comment, bool useReflexiveEocdSignature)
 		{
 			if (noOfEntries >= 0xffff ||
 			    start >= 0xffffffff ||
@@ -257,7 +258,14 @@ namespace ICSharpCode.SharpZipLib.Zip
 				WriteZip64EndOfCentralDirectory(stream, noOfEntries, sizeEntries, start);
 			}
 
-			stream.WriteLEInt(ZipConstants.EndOfCentralDirectorySignature);
+			if (useReflexiveEocdSignature)
+			{
+				stream.WriteLEInt(ZipConstants.ReflexiveEndOfCentralDirectorySignature);
+			}
+			else
+			{
+				stream.WriteLEInt(ZipConstants.EndOfCentralDirectorySignature);
+			}
 
 			// TODO: ZipFile Multi disk handling not done
 			stream.WriteLEShort(0);                    // number of this disk

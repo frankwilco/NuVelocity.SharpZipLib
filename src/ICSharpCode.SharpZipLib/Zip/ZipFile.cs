@@ -799,6 +799,12 @@ namespace ICSharpCode.SharpZipLib.Zip
 			}
 		}
 
+		/// <summary>
+		/// Get/set a flag indicating if Reflexive's custom end of central directory
+		/// signature should be used when the ZIP archive is updated.
+		/// </summary>
+		public bool UseReflexiveEocdSignature { get; set; }
+
 		#endregion Properties
 
 		#region Input Handling
@@ -1680,7 +1686,7 @@ namespace ICSharpCode.SharpZipLib.Zip
 					byte[] theComment = (newComment_ != null) 
 						? newComment_.RawComment 
 						: _stringCodec.ZipArchiveCommentEncoding.GetBytes(comment_);
-					ZipFormat.WriteEndOfCentralDirectory(baseStream_, 0, 0, 0, theComment);
+					ZipFormat.WriteEndOfCentralDirectory(baseStream_, 0, 0, 0, theComment, UseReflexiveEocdSignature);
 				}
 			}
 			finally
@@ -2997,6 +3003,15 @@ namespace ICSharpCode.SharpZipLib.Zip
 				long locatedCentralDirOffset =
 					ZipFormat.LocateBlockWithSignature(updateFile, ZipConstants.EndOfCentralDirectorySignature,
 						baseLength, ZipConstants.EndOfCentralRecordBaseSize, 0xffff);
+
+				// XXX: If we didn't find the standard end of central directory signature,
+				// try to look it up again with Reflexive's custom signature.
+				if (locatedCentralDirOffset < 0)
+				{
+					ZipFormat.LocateBlockWithSignature(updateFile, ZipConstants.ReflexiveEndOfCentralDirectorySignature,
+						baseLength, ZipConstants.EndOfCentralRecordBaseSize, 0xffff);
+				}
+
 				if (locatedCentralDirOffset < 0)
 				{
 					throw new ZipException("Cannot find central directory");
@@ -3179,7 +3194,7 @@ namespace ICSharpCode.SharpZipLib.Zip
 
 				byte[] theComment = newComment_?.RawComment ?? _stringCodec.ZipArchiveCommentEncoding.GetBytes(comment_);
 				ZipFormat.WriteEndOfCentralDirectory(workFile.baseStream_, updateCount_, 
-					sizeEntries, centralDirOffset, theComment);
+					sizeEntries, centralDirOffset, theComment, UseReflexiveEocdSignature);
 
 				endOfStream = workFile.baseStream_.Position;
 
@@ -3550,6 +3565,14 @@ namespace ICSharpCode.SharpZipLib.Zip
 
 			long locatedEndOfCentralDir = LocateBlockWithSignature(ZipConstants.EndOfCentralDirectorySignature,
 				baseStream_.Length, ZipConstants.EndOfCentralRecordBaseSize, 0xffff);
+
+			// XXX: If we didn't find the standard end of central directory signature,
+			// try to look it up again with Reflexive's custom signature.
+			if (locatedEndOfCentralDir < 0)
+			{
+				locatedEndOfCentralDir = LocateBlockWithSignature(ZipConstants.ReflexiveEndOfCentralDirectorySignature,
+					baseStream_.Length, ZipConstants.EndOfCentralRecordBaseSize, 0xffff);
+			}
 
 			if (locatedEndOfCentralDir < 0)
 			{

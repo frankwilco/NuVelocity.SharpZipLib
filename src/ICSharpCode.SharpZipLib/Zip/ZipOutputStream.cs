@@ -191,6 +191,12 @@ namespace ICSharpCode.SharpZipLib.Zip
 		}
 
 		/// <summary>
+		/// Get/set a flag indicating if Reflexive's custom end of central directory
+		/// signature should be used when the ZIP archive is updated.
+		/// </summary>
+		public bool UseReflexiveEocdSignature { get; set; }
+
+		/// <summary>
 		/// Write an unsigned short in little endian byte order.
 		/// </summary>
 		private void WriteLeShort(int value)
@@ -902,7 +908,7 @@ namespace ICSharpCode.SharpZipLib.Zip
 				sizeEntries += ZipFormat.WriteEndEntry(baseOutputStream_, entry, _stringCodec);
 			}
 
-			ZipFormat.WriteEndOfCentralDirectory(baseOutputStream_, numEntries, sizeEntries, offset, zipComment);
+			ZipFormat.WriteEndOfCentralDirectory(baseOutputStream_, numEntries, sizeEntries, offset, zipComment, UseReflexiveEocdSignature);
 
 			entries = null;
 		}
@@ -934,7 +940,7 @@ namespace ICSharpCode.SharpZipLib.Zip
 				}
 
 				await baseOutputStream_.WriteProcToStreamAsync(ms, s 
-						=> ZipFormat.WriteEndOfCentralDirectory(s, numEntries, sizeEntries, offset, zipComment),
+						=> ZipFormat.WriteEndOfCentralDirectory(s, numEntries, sizeEntries, offset, zipComment, UseReflexiveEocdSignature),
 					ct).ConfigureAwait(false);
 
 				entries = null;

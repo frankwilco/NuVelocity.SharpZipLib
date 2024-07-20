@@ -330,6 +330,7 @@ namespace ICSharpCode.SharpZipLib.Zip
 				{
 					case ZipConstants.CentralHeaderSignature:
 					case ZipConstants.EndOfCentralDirectorySignature:
+					case ZipConstants.ReflexiveEndOfCentralDirectorySignature:
 					case ZipConstants.CentralHeaderDigitalSignature:
 					case ZipConstants.ArchiveExtraDataSignature:
 					case ZipConstants.Zip64CentralFileHeaderSignature:
