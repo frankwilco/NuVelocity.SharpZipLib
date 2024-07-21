@@ -7,18 +7,38 @@ namespace ICSharpCode.SharpZipLib.Core
 	/// <summary>
 	/// Pool for <see cref="Inflater"/> instances as they can be costly due to byte array allocations.
 	/// </summary>
-	internal sealed class InflaterPool
+	public sealed class InflaterPool
 	{
 		private readonly ConcurrentQueue<PooledInflater> noHeaderPool = new ConcurrentQueue<PooledInflater>();
 		private readonly ConcurrentQueue<PooledInflater> headerPool = new ConcurrentQueue<PooledInflater>();
 
-		internal static InflaterPool Instance { get; } = new InflaterPool();
+		/// <summary>
+		/// Gets a singleton instance of the InflaterPool class.
+		/// </summary>
+		public static InflaterPool Instance { get; } = new InflaterPool();
 
 		private InflaterPool()
 		{
 		}
 
-		internal Inflater Rent(bool noHeader = false)
+		/// <summary>
+		/// Rents an Inflater instance from the pool.
+		/// </summary>
+		/// <param name="noHeader">
+		/// True if no RFC1950/Zlib header and footer fields are expected in the input data
+		///
+		/// This is used for GZIPed/Zipped input.
+		///
+		/// For compatibility with
+		/// Sun JDK you should provide one byte of input more than needed in
+		/// this case.
+		/// </param>
+		/// <returns>
+		/// An Inflater instance from the pool.
+		/// 
+		/// If the pool is disabled, a new Inflater is created and returned.
+		/// </returns>
+		public Inflater Rent(bool noHeader = false)
 		{
 			if (SharpZipLibOptions.InflaterPoolSize <= 0)
 			{
@@ -41,7 +61,17 @@ namespace ICSharpCode.SharpZipLib.Core
 			return inf;
 		}
 
-		internal void Return(Inflater inflater)
+		/// <summary>
+		/// Returns an Inflater instance back to the pool for reuse.
+		/// </summary>
+		/// <param name="inflater">
+		/// The Inflater instance to return.
+		/// </param>
+		/// <exception cref="ArgumentException">
+		/// Thrown if the provided inflater is not a PooledInflater instance
+		/// obtained from the Rent method.
+		/// </exception>
+		public void Return(Inflater inflater)
 		{
 			if (SharpZipLibOptions.InflaterPoolSize <= 0)
 			{
